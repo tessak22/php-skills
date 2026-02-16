@@ -16,7 +16,7 @@ class SkillDirectoryController extends Controller
     public function index(Request $request): Response
     {
         $perPage = (int) $request->input('per_page', 12);
-        $sort = $request->input('sort', 'newest');
+        $sort = $request->input('sort', 'installs');
         $search = $request->input('search');
         $categorySlug = $request->input('category');
         $agent = $request->input('agent');

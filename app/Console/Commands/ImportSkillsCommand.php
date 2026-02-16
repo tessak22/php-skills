@@ -78,19 +78,19 @@ class ImportSkillsCommand extends Command
             }
 
             $owner = $this->extractOwner($source);
-            $sourceUrl = "https://github.com/{$source}/tree/main/skills/{$skillId}";
             $installCount = (int) ($skillData['installs'] ?? 0);
 
             // Fetch and parse the SKILL.md content
-            $rawContent = $this->fetchSkillContent($source, $skillId);
-            $frontmatter = $this->parseFrontmatter($rawContent);
-            $skillContent = $this->stripFrontmatter($rawContent);
+            $fetched = $this->fetchSkillContent($source, $skillId);
+            $sourceUrl = $fetched['url'];
+            $frontmatter = $this->parseFrontmatter($fetched['content']);
+            $skillContent = $this->stripFrontmatter($fetched['content']);
 
             $name = $frontmatter['name']
                 ?? $this->humanizeName($skillId);
 
             $description = $frontmatter['description']
-                ?? "Imported from skills.sh ({$source}/{$skillId})";
+                ?? "A reusable AI agent skill for {$this->humanizeName($skillId)}.";
 
             if ($isDryRun) {
                 $this->newLine();
@@ -211,8 +211,10 @@ class ImportSkillsCommand extends Command
 
     /**
      * Try multiple GitHub raw paths to fetch the SKILL.md content.
+     *
+     * @return array{content: string, url: string}
      */
-    private function fetchSkillContent(string $source, string $skillId): string
+    private function fetchSkillContent(string $source, string $skillId): array
     {
         foreach (self::SKILL_PATHS as $branch => $prefixes) {
             foreach ($prefixes as $prefix) {
@@ -221,12 +223,14 @@ class ImportSkillsCommand extends Command
                 $response = Http::timeout(10)->get($url);
 
                 if ($response->successful()) {
-                    return $response->body();
+                    $browseUrl = "https://github.com/{$source}/blob/{$branch}/{$prefix}/{$skillId}/SKILL.md";
+
+                    return ['content' => $response->body(), 'url' => $browseUrl];
                 }
             }
         }
 
-        return '';
+        return ['content' => '', 'url' => "https://github.com/{$source}"];
     }
 
     /**
