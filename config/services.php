@@ -35,4 +35,27 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Social Platform API Keys
+    |--------------------------------------------------------------------------
+    */
+
+    'x' => [
+        'bearer_token' => env('X_BEARER_TOKEN'),
+    ],
+
+    'bluesky' => [
+        'identifier' => env('BLUESKY_IDENTIFIER'),
+        'password' => env('BLUESKY_APP_PASSWORD'),
+    ],
+
+    'youtube' => [
+        'api_key' => env('YOUTUBE_API_KEY'),
+    ],
+
+    'devto' => [
+        'api_key' => env('DEVTO_API_KEY'),
+    ],
+
 ];
