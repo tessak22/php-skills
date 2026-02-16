@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { Download, ExternalLink, Github, Star, Tag, Verified } from 'lucide-vue-next';
+import { marked } from 'marked';
+import { computed } from 'vue';
 import CopyButton from '@/components/CopyButton.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +73,11 @@ function formatDate(dateStr: string): string {
 function getInitial(name: string): string {
     return name.charAt(0).toUpperCase();
 }
+
+const renderedContent = computed(() => {
+    if (!props.skill.content) return '';
+    return marked(props.skill.content);
+});
 </script>
 
 <template>
@@ -143,7 +150,7 @@ function getInitial(name: string): string {
                         <!-- Skill Content -->
                         <div class="prose prose-neutral dark:prose-invert max-w-none">
                             <!-- eslint-disable-next-line vue/no-v-html -->
-                            <div v-html="skill.content" />
+                            <div v-html="renderedContent" />
                         </div>
                     </div>
 

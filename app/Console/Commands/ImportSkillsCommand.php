@@ -82,8 +82,9 @@ class ImportSkillsCommand extends Command
             $installCount = (int) ($skillData['installs'] ?? 0);
 
             // Fetch and parse the SKILL.md content
-            $skillContent = $this->fetchSkillContent($source, $skillId);
-            $frontmatter = $this->parseFrontmatter($skillContent);
+            $rawContent = $this->fetchSkillContent($source, $skillId);
+            $frontmatter = $this->parseFrontmatter($rawContent);
+            $skillContent = $this->stripFrontmatter($rawContent);
 
             $name = $frontmatter['name']
                 ?? $this->humanizeName($skillId);
@@ -257,6 +258,25 @@ class ImportSkillsCommand extends Command
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    /**
+     * Remove YAML frontmatter from a SKILL.md string, returning just the body.
+     */
+    private function stripFrontmatter(string $markdown): string
+    {
+        if ($markdown === '' || ! str_starts_with(trim($markdown), '---')) {
+            return $markdown;
+        }
+
+        $trimmed = ltrim($markdown);
+        $endPos = strpos($trimmed, '---', 3);
+
+        if ($endPos === false) {
+            return $markdown;
+        }
+
+        return ltrim(substr($trimmed, $endPos + 3));
     }
 
     /**
