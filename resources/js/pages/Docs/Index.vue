@@ -40,13 +40,13 @@ const agents: Agent[] = [
 </script>
 
 <template>
-    <Head title="Documentation - LaravelSkills">
+    <Head title="Documentation - Laravel Skills">
         <meta name="description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
-        <meta property="og:title" content="Documentation - LaravelSkills" />
+        <meta property="og:title" content="Documentation - Laravel Skills" />
         <meta property="og:description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Documentation - LaravelSkills" />
+        <meta name="twitter:title" content="Documentation - Laravel Skills" />
         <meta name="twitter:description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
     </Head>
 
@@ -251,7 +251,7 @@ class Post extends Model
                 </div>
 
                 <p class="mb-6 text-muted-foreground">
-                    LaravelSkills supports the most popular AI coding assistants. Skills are designed to
+                    Laravel Skills supports the most popular AI coding assistants. Skills are designed to
                     work across agents, with format adaptations as needed.
                 </p>
 

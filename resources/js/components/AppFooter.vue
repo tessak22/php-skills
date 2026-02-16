@@ -9,7 +9,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
             <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <Link href="/" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <AppLogoIcon class="h-5 w-5 fill-current" />
-                    <span class="font-semibold">LaravelSkills</span>
+                    <span class="font-semibold">Laravel Skills</span>
                 </Link>
                 <nav class="flex gap-6 text-sm text-muted-foreground">
                     <Link href="/skills" class="hover:text-foreground transition-colors">Skills</Link>

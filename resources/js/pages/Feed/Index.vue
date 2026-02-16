@@ -95,13 +95,13 @@ function isActive(platform: string | null): boolean {
 </script>
 
 <template>
-    <Head title="Community Feed - LaravelSkills">
+    <Head title="Community Feed - Laravel Skills">
         <meta name="description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
-        <meta property="og:title" content="Community Feed - LaravelSkills" />
+        <meta property="og:title" content="Community Feed - Laravel Skills" />
         <meta property="og:description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Community Feed - LaravelSkills" />
+        <meta name="twitter:title" content="Community Feed - Laravel Skills" />
         <meta name="twitter:description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
     </Head>
 

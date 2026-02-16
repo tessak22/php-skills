@@ -134,13 +134,13 @@ watch(
 </script>
 
 <template>
-    <Head title="Skills Directory - LaravelSkills">
+    <Head title="Skills Directory - Laravel Skills">
         <meta name="description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
-        <meta property="og:title" content="Skills Directory - LaravelSkills" />
+        <meta property="og:title" content="Skills Directory - Laravel Skills" />
         <meta property="og:description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Skills Directory - LaravelSkills" />
+        <meta name="twitter:title" content="Skills Directory - Laravel Skills" />
         <meta name="twitter:description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
     </Head>
 

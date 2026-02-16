@@ -58,13 +58,13 @@ defineProps<Props>();
 </script>
 
 <template>
-    <Head title="LaravelSkills - AI Agent Skills for Laravel">
+    <Head title="Laravel Skills - AI Agent Skills for Laravel">
         <meta name="description" content="A curated directory of reusable AI agent skills for Laravel and PHP. Discover, install, and share skills for Claude Code, Cursor, Windsurf, and more." />
-        <meta property="og:title" content="LaravelSkills - AI Agent Skills for Laravel" />
+        <meta property="og:title" content="Laravel Skills - AI Agent Skills for Laravel" />
         <meta property="og:description" content="A curated directory of reusable AI agent skills for Laravel and PHP. Discover, install, and share skills for Claude Code, Cursor, Windsurf, and more." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="LaravelSkills - AI Agent Skills for Laravel" />
+        <meta name="twitter:title" content="Laravel Skills - AI Agent Skills for Laravel" />
         <meta name="twitter:description" content="A curated directory of reusable AI agent skills for Laravel and PHP. Discover, install, and share skills for Claude Code, Cursor, Windsurf, and more." />
     </Head>
 

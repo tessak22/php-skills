@@ -43,13 +43,13 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Share Content - LaravelSkills">
+    <Head title="Share Content - Laravel Skills">
         <meta name="description" content="Share a blog post, video, tweet, or other content with the Laravel community." />
-        <meta property="og:title" content="Share Content - LaravelSkills" />
+        <meta property="og:title" content="Share Content - Laravel Skills" />
         <meta property="og:description" content="Share a blog post, video, tweet, or other content with the Laravel community." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Share Content - LaravelSkills" />
+        <meta name="twitter:title" content="Share Content - Laravel Skills" />
         <meta name="twitter:description" content="Share a blog post, video, tweet, or other content with the Laravel community." />
     </Head>
 

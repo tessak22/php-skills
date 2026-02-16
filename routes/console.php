@@ -42,3 +42,18 @@ Schedule::job(new FetchSocialPostsJob(DevToAdapter::class))
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Skills Import
+|--------------------------------------------------------------------------
+|
+| Re-import skills from skills.sh daily to pick up new submissions.
+| Uses updateOrCreate so existing skills are refreshed, not duplicated.
+|
+*/
+
+Schedule::command('skills:import')
+    ->daily()
+    ->withoutOverlapping()
+    ->onOneServer();

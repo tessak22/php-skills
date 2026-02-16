@@ -11,8 +11,6 @@ workers:
     build:
       - npm install
       - npm run build
-      - php artisan config:cache
-      - php artisan route:cache
     scheduler: true
 
   queue:
