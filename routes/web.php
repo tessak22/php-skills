@@ -18,7 +18,6 @@ Route::get('/skills/{skill:slug}', [SkillDirectoryController::class, 'show'])->n
 Route::get('/feed', [FeedPageController::class, 'index'])->name('feed.index');
 
 Route::get('/submit', [SubmitSkillController::class, 'create'])
-    ->middleware('auth')
     ->name('skills.submit');
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');

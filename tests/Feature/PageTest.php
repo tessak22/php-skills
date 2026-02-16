@@ -40,10 +40,10 @@ it('renders the docs page', function () {
     $response->assertOk();
 });
 
-it('redirects guests from submit page to login', function () {
+it('renders submit page for guests', function () {
     $response = $this->get('/submit');
 
-    $response->assertRedirect('/login');
+    $response->assertOk();
 });
 
 it('renders the submit page for authenticated users', function () {

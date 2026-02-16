@@ -23,7 +23,7 @@ class AuthorFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name).'-'.Str::random(4),
             'github_username' => fake()->userName(),
-            'avatar_url' => 'https://avatars.githubusercontent.com/u/'.fake()->numberBetween(1000, 99999),
+            'avatar_url' => 'https://i.pravatar.cc/150?u='.fake()->userName(),
             'bio' => fake()->sentence(15),
             'user_id' => null,
         ];

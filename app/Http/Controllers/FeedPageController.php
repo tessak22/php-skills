@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\Platform;
-use App\Http\Resources\SocialPostResource;
 use App\Models\SocialPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -31,16 +30,14 @@ class FeedPageController extends Controller
         $posts = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('Feed/Index', [
-            'posts' => SocialPostResource::collection($posts),
+            'posts' => $posts,
             'platforms' => Cache::remember('feed:platforms', now()->addHours(24), function () {
                 return collect(Platform::cases())->map(fn (Platform $p) => [
                     'value' => $p->value,
                     'label' => $p->label(),
                 ])->all();
             }),
-            'filters' => [
-                'platform' => $platform,
-            ],
+            'currentPlatform' => $platform,
         ]);
     }
 }

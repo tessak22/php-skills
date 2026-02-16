@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\CategoryResource;
-use App\Http\Resources\SkillResource;
-use App\Http\Resources\SocialPostResource;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Models\SocialPost;
@@ -39,9 +36,9 @@ class HomeController extends Controller
         });
 
         return Inertia::render('Home', [
-            'featuredSkills' => SkillResource::collection($featuredSkills),
-            'recentPosts' => SocialPostResource::collection($recentPosts),
-            'categories' => CategoryResource::collection($categories),
+            'featuredSkills' => $featuredSkills,
+            'recentPosts' => $recentPosts,
+            'categories' => $categories,
         ]);
     }
 }

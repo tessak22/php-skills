@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\CategoryResource;
-use App\Http\Resources\SkillResource;
 use App\Models\Category;
 use App\Models\Skill;
 use Illuminate\Http\Request;
@@ -51,8 +49,8 @@ class SkillDirectoryController extends Controller
         });
 
         return Inertia::render('Skills/Index', [
-            'skills' => SkillResource::collection($skills),
-            'categories' => CategoryResource::collection($categories),
+            'skills' => $skills,
+            'categories' => $categories,
             'filters' => [
                 'search' => $search,
                 'category' => $categorySlug,
@@ -67,7 +65,7 @@ class SkillDirectoryController extends Controller
         $skill->load(['author', 'category']);
 
         return Inertia::render('Skills/Show', [
-            'skill' => new SkillResource($skill),
+            'skill' => $skill,
         ]);
     }
 }

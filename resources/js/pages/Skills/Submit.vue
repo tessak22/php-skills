@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +49,14 @@ function toggleAgent(agent: string) {
     }
 }
 
+const page = usePage();
+
 function submit() {
+    if (!page.props.auth?.user) {
+        router.visit('/login');
+        return;
+    }
+
     form.post('/api/v1/skills', {
         preserveScroll: true,
     });
