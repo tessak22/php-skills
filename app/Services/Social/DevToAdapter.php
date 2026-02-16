@@ -40,25 +40,34 @@ class DevToAdapter implements SocialPlatformInterface
         $tags = ['laravel', 'php'];
 
         foreach ($tags as $tag) {
-            $response = Http::withHeaders($headers)
-                ->retry(3, 100)
-                ->get("{$this->baseUrl}/articles", [
-                    'tag' => $tag,
-                    'per_page' => 25,
-                    'state' => 'rising',
-                ]);
+            try {
+                $response = Http::withHeaders($headers)
+                    ->retry(3, 100)
+                    ->get("{$this->baseUrl}/articles", [
+                        'tag' => $tag,
+                        'per_page' => 25,
+                        'state' => 'rising',
+                    ]);
 
-            if ($response->failed()) {
-                Log::error('DEV.to API request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
+                if ($response->failed()) {
+                    Log::warning('DEV.to API request failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                        'tag' => $tag,
+                    ]);
+
+                    continue;
+                }
+
+                $articles = $articles->merge($response->json());
+            } catch (\Throwable $e) {
+                Log::warning('DEV.to API unreachable', [
                     'tag' => $tag,
+                    'error' => $e->getMessage(),
                 ]);
 
                 continue;
             }
-
-            $articles = $articles->merge($response->json());
         }
 
         // Deduplicate by article ID
@@ -79,9 +88,11 @@ class DevToAdapter implements SocialPlatformInterface
         $article = $data['article'];
 
         $user = $article['user'] ?? [];
-        $reactions = (int) ($article['public_reactions_count'] ?? $article['positive_reactions_count'] ?? 0);
+        // Engagement: likes x 1 + reposts x 2 + comments x 3
+        // DEV.to has no repost equivalent, so reposts = 0
+        $likes = (int) ($article['positive_reactions_count'] ?? $article['public_reactions_count'] ?? 0);
         $comments = (int) ($article['comments_count'] ?? 0);
-        $engagement = $reactions + ($comments * 3);
+        $engagement = ($likes * 1) + (0 * 2) + ($comments * 3);
 
         $coverImage = $article['cover_image'] ?? $article['social_image'] ?? null;
 

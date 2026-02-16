@@ -1,0 +1,33 @@
+# Laravel Cloud deployment configuration for LaravelSkills
+# Docs: https://cloud.laravel.com/docs/configuration
+
+version: 1
+
+workers:
+  web:
+    type: web
+    compute: shared-512
+    health-check: /up
+    build:
+      - npm install
+      - npm run build
+      - php artisan migrate --force
+      - php artisan config:cache
+      - php artisan route:cache
+    scheduler: true
+
+  queue:
+    type: queue
+    compute: shared-512
+    connection: redis
+    queues:
+      - default
+      - social
+
+databases:
+  postgres:
+    type: postgres
+
+stores:
+  redis:
+    type: redis

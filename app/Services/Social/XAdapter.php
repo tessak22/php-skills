@@ -37,24 +37,32 @@ class XAdapter implements SocialPlatformInterface
 
         $query = '(laravel OR php) (ai OR skills OR agent OR "claude code") -is:retweet lang:en';
 
-        $response = Http::withToken($bearerToken)
-            ->retry(3, 100, fn ($exception) => $exception->getCode() === 429)
-            ->get("{$this->baseUrl}/tweets/search/recent", [
-                'query' => $query,
-                'max_results' => 50,
-                'tweet.fields' => 'created_at,public_metrics,author_id',
-                'user.fields' => 'name,username,profile_image_url',
-                'expansions' => 'author_id,attachments.media_keys',
-                'media.fields' => 'url,preview_image_url',
+        try {
+            $response = Http::withToken($bearerToken)
+                ->retry(3, 100, fn ($exception) => $exception->getCode() === 429)
+                ->get("{$this->baseUrl}/tweets/search/recent", [
+                    'query' => $query,
+                    'max_results' => 50,
+                    'tweet.fields' => 'created_at,public_metrics,author_id',
+                    'user.fields' => 'name,username,profile_image_url',
+                    'expansions' => 'author_id,attachments.media_keys',
+                    'media.fields' => 'url,preview_image_url',
+                ]);
+
+            if ($response->failed()) {
+                Log::warning('X API request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return collect();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('X API unreachable', [
+                'error' => $e->getMessage(),
             ]);
 
-        if ($response->failed()) {
-            Log::error('X API request failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            $response->throw();
+            return collect();
         }
 
         $data = $response->json();
@@ -89,9 +97,11 @@ class XAdapter implements SocialPlatformInterface
         $media = $data['media'] ?? null;
         $metrics = $tweet['public_metrics'] ?? [];
 
-        $engagement = ($metrics['like_count'] ?? 0)
-            + (($metrics['retweet_count'] ?? 0) * 2)
-            + (($metrics['reply_count'] ?? 0) * 3);
+        // Engagement: likes x 1 + reposts x 2 + comments x 3
+        $likes = (int) ($metrics['like_count'] ?? 0);
+        $reposts = (int) ($metrics['retweet_count'] ?? 0);
+        $comments = (int) ($metrics['reply_count'] ?? 0);
+        $engagement = ($likes * 1) + ($reposts * 2) + ($comments * 3);
 
         return [
             'platform' => Platform::X,

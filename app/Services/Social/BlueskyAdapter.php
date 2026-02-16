@@ -27,20 +27,28 @@ class BlueskyAdapter implements SocialPlatformInterface
      */
     public function fetch(): Collection
     {
-        $response = Http::retry(3, 100)
-            ->get("{$this->baseUrl}/xrpc/app.bsky.feed.searchPosts", [
-                'q' => 'laravel ai OR laravel skills OR laravel agent OR php ai',
-                'limit' => 50,
-                'sort' => 'latest',
+        try {
+            $response = Http::retry(3, 100)
+                ->get("{$this->baseUrl}/xrpc/app.bsky.feed.searchPosts", [
+                    'q' => 'laravel ai OR laravel skills OR laravel agent OR php ai',
+                    'limit' => 50,
+                    'sort' => 'latest',
+                ]);
+
+            if ($response->failed()) {
+                Log::warning('Bluesky API request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return collect();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Bluesky API unreachable', [
+                'error' => $e->getMessage(),
             ]);
 
-        if ($response->failed()) {
-            Log::error('Bluesky API request failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            $response->throw();
+            return collect();
         }
 
         $posts = $response->json('posts', []);
@@ -66,10 +74,11 @@ class BlueskyAdapter implements SocialPlatformInterface
         $embed = $post['embed'] ?? [];
         $mediaUrl = $embed['images'][0]['fullsize'] ?? $embed['thumbnail'] ?? null;
 
-        $likeCount = $post['likeCount'] ?? 0;
-        $repostCount = $post['repostCount'] ?? 0;
-        $replyCount = $post['replyCount'] ?? 0;
-        $engagement = $likeCount + ($repostCount * 2) + ($replyCount * 3);
+        // Engagement: likes x 1 + reposts x 2 + comments x 3
+        $likes = (int) ($post['likeCount'] ?? 0);
+        $reposts = (int) ($post['repostCount'] ?? 0);
+        $comments = (int) ($post['replyCount'] ?? 0);
+        $engagement = ($likes * 1) + ($reposts * 2) + ($comments * 3);
 
         $handle = $author['handle'] ?? 'unknown';
         $uri = $post['uri'] ?? '';

@@ -57,7 +57,15 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Submit a Skill - LaravelSkills" />
+    <Head title="Submit a Skill - LaravelSkills">
+        <meta name="description" content="Share your AI agent skill with the Laravel community. Submit reusable skills for Claude Code, Cursor, Windsurf, and more." />
+        <meta property="og:title" content="Submit a Skill - LaravelSkills" />
+        <meta property="og:description" content="Share your AI agent skill with the Laravel community. Submit reusable skills for Claude Code, Cursor, Windsurf, and more." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Submit a Skill - LaravelSkills" />
+        <meta name="twitter:description" content="Share your AI agent skill with the Laravel community. Submit reusable skills for Claude Code, Cursor, Windsurf, and more." />
+    </Head>
 
     <div class="px-4 py-8">
         <div class="mx-auto max-w-2xl">

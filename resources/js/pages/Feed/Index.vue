@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
+import { MessageSquareOff } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref } from 'vue';
 import AppPagination from '@/components/AppPagination.vue';
 import FeedPost from '@/components/FeedPost.vue';
+import FeedPostSkeleton from '@/components/FeedPostSkeleton.vue';
 import { Button } from '@/components/ui/button';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 
@@ -42,6 +45,25 @@ type Props = {
 
 const props = defineProps<Props>();
 
+const loading = ref(false);
+
+let removeStartListener: (() => void) | null = null;
+let removeFinishListener: (() => void) | null = null;
+
+onMounted(() => {
+    removeStartListener = router.on('start', () => {
+        loading.value = true;
+    });
+    removeFinishListener = router.on('finish', () => {
+        loading.value = false;
+    });
+});
+
+onUnmounted(() => {
+    removeStartListener?.();
+    removeFinishListener?.();
+});
+
 type PlatformTab = {
     label: string;
     value: string | null;
@@ -72,7 +94,15 @@ function isActive(platform: string | null): boolean {
 </script>
 
 <template>
-    <Head title="Community Feed - LaravelSkills" />
+    <Head title="Community Feed - LaravelSkills">
+        <meta name="description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
+        <meta property="og:title" content="Community Feed - LaravelSkills" />
+        <meta property="og:description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Community Feed - LaravelSkills" />
+        <meta name="twitter:description" content="See what the Laravel community is building, sharing, and discussing around AI-powered development. Aggregated from X, Bluesky, YouTube, and DEV.to." />
+    </Head>
 
     <div class="px-4 py-8">
         <div class="mx-auto max-w-3xl">
@@ -99,8 +129,13 @@ function isActive(platform: string | null): boolean {
                 </Button>
             </div>
 
+            <!-- Skeleton Loading State -->
+            <div v-if="loading" class="space-y-4">
+                <FeedPostSkeleton v-for="n in 4" :key="n" />
+            </div>
+
             <!-- Posts List -->
-            <div v-if="posts.data.length" class="space-y-4">
+            <div v-else-if="posts.data.length" class="space-y-4">
                 <FeedPost
                     v-for="post in posts.data"
                     :key="post.id"
@@ -109,11 +144,26 @@ function isActive(platform: string | null): boolean {
             </div>
 
             <!-- Empty State -->
-            <div v-else class="py-16 text-center">
-                <p class="text-lg font-medium text-foreground">No posts found</p>
-                <p class="mt-2 text-muted-foreground">
-                    Try selecting a different platform filter.
+            <div v-else class="rounded-lg border border-dashed py-16 text-center">
+                <MessageSquareOff class="mx-auto h-10 w-10 text-muted-foreground/50" />
+                <h3 class="mt-4 text-lg font-medium text-foreground">No posts found</h3>
+                <p class="mt-2 max-w-md mx-auto text-sm text-muted-foreground">
+                    <template v-if="currentPlatform">
+                        No posts found for this platform. Try selecting a different platform or view all posts.
+                    </template>
+                    <template v-else>
+                        Community content from X, Bluesky, YouTube, and DEV.to will appear here as it is collected.
+                    </template>
                 </p>
+                <div v-if="currentPlatform" class="mt-6">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        @click="selectPlatform(null)"
+                    >
+                        View all platforms
+                    </Button>
+                </div>
             </div>
 
             <!-- Pagination -->

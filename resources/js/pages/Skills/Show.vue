@@ -75,7 +75,15 @@ function getInitial(name: string): string {
 
 <template>
     <PublicLayout :breadcrumbs="breadcrumbs">
-        <Head :title="`${skill.name} - LaravelSkills`" />
+        <Head :title="`${skill.name} - LaravelSkills`">
+            <meta name="description" :content="skill.description" />
+            <meta property="og:title" :content="`${skill.name} - LaravelSkills`" />
+            <meta property="og:description" :content="skill.description" />
+            <meta property="og:type" content="website" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" :content="`${skill.name} - LaravelSkills`" />
+            <meta name="twitter:description" :content="skill.description" />
+        </Head>
 
         <div class="px-4 py-8">
             <div class="mx-auto max-w-7xl">

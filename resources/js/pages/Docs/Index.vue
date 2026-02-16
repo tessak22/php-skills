@@ -40,7 +40,15 @@ const agents: Agent[] = [
 </script>
 
 <template>
-    <Head title="Documentation - LaravelSkills" />
+    <Head title="Documentation - LaravelSkills">
+        <meta name="description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
+        <meta property="og:title" content="Documentation - LaravelSkills" />
+        <meta property="og:description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Documentation - LaravelSkills" />
+        <meta name="twitter:description" content="Everything you need to know about installing, creating, and sharing AI agent skills for Laravel. Guides for Claude Code, Cursor, Windsurf, and Copilot." />
+    </Head>
 
     <div class="px-4 py-8">
         <div class="mx-auto max-w-4xl">

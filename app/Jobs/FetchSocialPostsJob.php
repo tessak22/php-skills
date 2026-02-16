@@ -12,6 +12,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class FetchSocialPostsJob implements ShouldQueue
@@ -51,6 +53,7 @@ class FetchSocialPostsJob implements ShouldQueue
         }
 
         $platform = $adapter->platform();
+        $cacheKey = "social:raw_posts:{$platform->value}";
 
         Log::info('Fetching social posts', [
             'platform' => $platform->value,
@@ -59,15 +62,47 @@ class FetchSocialPostsJob implements ShouldQueue
 
         try {
             $posts = $adapter->fetch();
+
+            // Cache fresh data for stale-serving when APIs are down (1 hour TTL)
+            if ($posts->isNotEmpty()) {
+                Cache::put($cacheKey, $posts, now()->addHour());
+            }
         } catch (\Throwable $e) {
-            Log::error('Failed to fetch social posts', [
+            Log::warning('Failed to fetch social posts, serving stale data', [
                 'platform' => $platform->value,
                 'error' => $e->getMessage(),
+                'exception_class' => get_class($e),
             ]);
 
-            throw $e;
+            // Stale > empty: serve cached data when API is down
+            $posts = Cache::get($cacheKey, collect());
+
+            if ($posts->isEmpty()) {
+                Log::warning('No stale data available for platform, skipping sync', [
+                    'platform' => $platform->value,
+                ]);
+
+                return;
+            }
+
+            Log::info('Using stale cached data for platform', [
+                'platform' => $platform->value,
+                'stale_count' => $posts->count(),
+            ]);
         }
 
+        $this->processPosts($adapter, $filterService, $platform, $posts);
+    }
+
+    /**
+     * Process and persist fetched social posts.
+     */
+    protected function processPosts(
+        SocialPlatformInterface $adapter,
+        ContentFilterService $filterService,
+        \App\Enums\Platform $platform,
+        Collection $posts,
+    ): void {
         $created = 0;
         $updated = 0;
         $filtered = 0;
@@ -106,13 +141,28 @@ class FetchSocialPostsJob implements ShouldQueue
     }
 
     /**
-     * Handle a job failure.
+     * Handle a job failure — log which platform adapter failed.
      */
     public function failed(?\Throwable $exception): void
     {
+        // Resolve the platform name for clearer logging
+        $platformName = 'unknown';
+
+        try {
+            $adapter = app($this->adapterClass);
+            if ($adapter instanceof SocialPlatformInterface) {
+                $platformName = $adapter->platform()->value;
+            }
+        } catch (\Throwable) {
+            // If we can't resolve the adapter, use the class name
+            $platformName = class_basename($this->adapterClass);
+        }
+
         Log::error('FetchSocialPostsJob failed permanently', [
             'adapter' => $this->adapterClass,
+            'platform' => $platformName,
             'error' => $exception?->getMessage(),
+            'trace' => $exception?->getTraceAsString(),
         ]);
     }
 }

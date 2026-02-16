@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
-import { ArrowDownWideNarrow, Clock, Download } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ArrowDownWideNarrow, Clock, Download, SearchX } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import AppPagination from '@/components/AppPagination.vue';
 import CategoryFilter from '@/components/CategoryFilter.vue';
 import SearchBar from '@/components/SearchBar.vue';
 import SkillCard from '@/components/SkillCard.vue';
+import SkillCardSkeleton from '@/components/SkillCardSkeleton.vue';
 import { Button } from '@/components/ui/button';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 
@@ -69,6 +70,24 @@ const props = defineProps<Props>();
 const search = ref(props.filters.search ?? '');
 const selectedCategory = ref(props.filters.category);
 const currentSort = ref(props.filters.sort ?? 'newest');
+const loading = ref(false);
+
+let removeStartListener: (() => void) | null = null;
+let removeFinishListener: (() => void) | null = null;
+
+onMounted(() => {
+    removeStartListener = router.on('start', () => {
+        loading.value = true;
+    });
+    removeFinishListener = router.on('finish', () => {
+        loading.value = false;
+    });
+});
+
+onUnmounted(() => {
+    removeStartListener?.();
+    removeFinishListener?.();
+});
 
 function applyFilters() {
     const params: Record<string, string> = {};
@@ -115,7 +134,15 @@ watch(
 </script>
 
 <template>
-    <Head title="Skills Directory - LaravelSkills" />
+    <Head title="Skills Directory - LaravelSkills">
+        <meta name="description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
+        <meta property="og:title" content="Skills Directory - LaravelSkills" />
+        <meta property="og:description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Skills Directory - LaravelSkills" />
+        <meta name="twitter:description" content="Browse and discover AI agent skills for Laravel and PHP development. Search by category, sort by popularity, and find the perfect skill for your workflow." />
+    </Head>
 
     <div class="px-4 py-8">
         <div class="mx-auto max-w-7xl">
@@ -174,8 +201,13 @@ watch(
                 </div>
             </div>
 
+            <!-- Skeleton Loading State -->
+            <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <SkillCardSkeleton v-for="n in 6" :key="n" />
+            </div>
+
             <!-- Skills Grid -->
-            <div v-if="skills.data.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-else-if="skills.data.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SkillCard
                     v-for="skill in skills.data"
                     :key="skill.slug"
@@ -184,11 +216,27 @@ watch(
             </div>
 
             <!-- Empty State -->
-            <div v-else class="py-16 text-center">
-                <p class="text-lg font-medium text-foreground">No skills found</p>
-                <p class="mt-2 text-muted-foreground">
-                    Try adjusting your search or filters.
+            <div v-else class="rounded-lg border border-dashed py-16 text-center">
+                <SearchX class="mx-auto h-10 w-10 text-muted-foreground/50" />
+                <h3 class="mt-4 text-lg font-medium text-foreground">No skills found</h3>
+                <p class="mt-2 max-w-md mx-auto text-sm text-muted-foreground">
+                    No skills match your current search or filters. Try broadening your search terms or clearing filters to browse all skills.
                 </p>
+                <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                    <Button
+                        v-if="search || selectedCategory"
+                        variant="outline"
+                        size="sm"
+                        @click="search = ''; selectedCategory = undefined; applyFilters()"
+                    >
+                        Clear all filters
+                    </Button>
+                    <Link href="/skills">
+                        <Button variant="ghost" size="sm">
+                            Browse all skills
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <!-- Pagination -->

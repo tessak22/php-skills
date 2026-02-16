@@ -8,6 +8,7 @@ use App\Enums\Platform;
 use App\Http\Resources\SocialPostResource;
 use App\Models\SocialPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,10 +32,12 @@ class FeedPageController extends Controller
 
         return Inertia::render('Feed/Index', [
             'posts' => SocialPostResource::collection($posts),
-            'platforms' => collect(Platform::cases())->map(fn (Platform $p) => [
-                'value' => $p->value,
-                'label' => $p->label(),
-            ]),
+            'platforms' => Cache::remember('feed:platforms', now()->addHours(24), function () {
+                return collect(Platform::cases())->map(fn (Platform $p) => [
+                    'value' => $p->value,
+                    'label' => $p->label(),
+                ])->all();
+            }),
             'filters' => [
                 'platform' => $platform,
             ],

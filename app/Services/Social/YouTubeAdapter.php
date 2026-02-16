@@ -35,24 +35,32 @@ class YouTubeAdapter implements SocialPlatformInterface
             return collect();
         }
 
-        $response = Http::retry(3, 100)
-            ->get("{$this->baseUrl}/search", [
-                'key' => $apiKey,
-                'q' => 'laravel ai skills OR laravel claude OR php ai agent',
-                'part' => 'snippet',
-                'type' => 'video',
-                'order' => 'date',
-                'maxResults' => 25,
-                'publishedAfter' => now()->subDays(7)->toIso8601String(),
+        try {
+            $response = Http::retry(3, 100)
+                ->get("{$this->baseUrl}/search", [
+                    'key' => $apiKey,
+                    'q' => 'laravel ai skills OR laravel claude OR php ai agent',
+                    'part' => 'snippet',
+                    'type' => 'video',
+                    'order' => 'date',
+                    'maxResults' => 25,
+                    'publishedAfter' => now()->subDays(7)->toIso8601String(),
+                ]);
+
+            if ($response->failed()) {
+                Log::warning('YouTube API request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return collect();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('YouTube API unreachable', [
+                'error' => $e->getMessage(),
             ]);
 
-        if ($response->failed()) {
-            Log::error('YouTube API request failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            $response->throw();
+            return collect();
         }
 
         $items = $response->json('items', []);
@@ -64,14 +72,22 @@ class YouTubeAdapter implements SocialPlatformInterface
         // Fetch video statistics for engagement scores
         $videoIds = collect($items)->pluck('id.videoId')->filter()->implode(',');
 
-        $statsResponse = Http::retry(3, 100)
-            ->get("{$this->baseUrl}/videos", [
-                'key' => $apiKey,
-                'id' => $videoIds,
-                'part' => 'statistics',
+        try {
+            $statsResponse = Http::retry(3, 100)
+                ->get("{$this->baseUrl}/videos", [
+                    'key' => $apiKey,
+                    'id' => $videoIds,
+                    'part' => 'statistics',
+                ]);
+
+            $stats = collect($statsResponse->json('items', []))->keyBy('id');
+        } catch (\Throwable $e) {
+            Log::warning('YouTube statistics API unreachable, proceeding without stats', [
+                'error' => $e->getMessage(),
             ]);
 
-        $stats = collect($statsResponse->json('items', []))->keyBy('id');
+            $stats = collect();
+        }
 
         return collect($items)->map(function (array $item) use ($stats): array {
             $videoId = $item['id']['videoId'] ?? '';
@@ -104,10 +120,11 @@ class YouTubeAdapter implements SocialPlatformInterface
             ?? $thumbnails['default']['url']
             ?? null;
 
+        // Engagement: likes x 1 + reposts x 2 + comments x 3
+        // YouTube has no repost equivalent, so reposts = 0
         $likeCount = (int) ($stats['likeCount'] ?? 0);
         $commentCount = (int) ($stats['commentCount'] ?? 0);
-        $viewCount = (int) ($stats['viewCount'] ?? 0);
-        $engagement = $likeCount + ($commentCount * 3) + intdiv($viewCount, 100);
+        $engagement = ($likeCount * 1) + (0 * 2) + ($commentCount * 3);
 
         return [
             'platform' => Platform::YouTube,
