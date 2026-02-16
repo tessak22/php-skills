@@ -63,6 +63,24 @@ When something unexpected happens — a package behaves differently than documen
 **Severity:** Minor
 **Product Insight:** Switching an existing User model from auto-increment to ULIDs is non-trivial when auth packages (Fortify) are involved. A "ULID-first" starter kit option would be a nice addition.
 
+### 2026-02-16 — Laravel Cloud Build Shows "Canceled" With No Error When No Billing
+
+**Context:** Connected GitHub repo to Laravel Cloud and triggered a build. Build immediately shows status "canceled" with no error log output.
+**Expected:** Either a successful build, or a clear error message explaining why the build was canceled.
+**Actual:** The build status simply says "canceled." No error log, no build output, no indication of what went wrong. After investigation, the cause was the account having no credit card/payment method attached.
+**Resolution:** Need to add a payment method to the Laravel Cloud account. The `cloud.yaml` config and codebase are fine — this is purely a billing gate.
+**Severity:** Notable
+**Product Insight:** When a Laravel Cloud build is canceled due to missing billing information, the UI should display a clear, actionable notice like "Build canceled: please add a payment method to enable deployments." The current UX of showing "canceled" with no explanation forces developers to troubleshoot their config files, Dockerfiles, and code when the issue is entirely on the billing side. This is a significant DX gap — especially painful for new Cloud users during onboarding.
+
+### 2026-02-16 — cloud.yaml: migrate --force Should Not Be in Build Step
+
+**Context:** While investigating the Cloud build issue, reviewed `cloud.yaml` and found `php artisan migrate --force` listed under `build:` commands.
+**Expected:** Migrations run after the build, when the database is provisioned and accessible.
+**Actual:** Having `migrate` in the build step means it would run during container image creation, before the database is available. This will fail on first deploy.
+**Resolution:** Will move `migrate --force` from `build:` to a `deploy:` section once Cloud billing is resolved and we can test deployments. The build step should only contain asset compilation and config caching.
+**Severity:** Notable
+**Product Insight:** The Laravel Cloud docs could benefit from a "common mistakes" section highlighting that database-dependent commands (migrate, db:seed) should not be in the build step. Many developers coming from Forge/Vapor may not realize the distinction.
+
 ### 2026-02-16 — Pint Fixes in Starter Kit Test Files
 
 **Context:** Ran `./vendor/bin/pint --parallel` immediately after scaffold.
