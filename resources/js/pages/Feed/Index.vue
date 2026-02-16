@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { MessageSquareOff } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
 import AppPagination from '@/components/AppPagination.vue';
@@ -12,7 +12,7 @@ defineOptions({ layout: PublicLayout });
 
 type Post = {
     id: string;
-    platform: 'x' | 'bluesky' | 'youtube' | 'devto';
+    platform: 'x' | 'bluesky' | 'youtube' | 'devto' | 'community';
     author_name: string;
     author_handle: string;
     author_avatar_url?: string;
@@ -75,6 +75,7 @@ const platforms: PlatformTab[] = [
     { label: 'Bluesky', value: 'bluesky' },
     { label: 'YouTube', value: 'youtube' },
     { label: 'DEV.to', value: 'devto' },
+    { label: 'Community', value: 'community' },
 ];
 
 function selectPlatform(platform: string | null) {
@@ -107,13 +108,20 @@ function isActive(platform: string | null): boolean {
     <div class="px-4 py-8">
         <div class="mx-auto max-w-3xl">
             <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold tracking-tight text-foreground">
-                    Community Feed
-                </h1>
-                <p class="mt-2 text-muted-foreground">
-                    What the Laravel community is building, sharing, and discussing around AI-powered development.
-                </p>
+            <div class="mb-8 flex items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight text-foreground">
+                        Community Feed
+                    </h1>
+                    <p class="mt-2 text-muted-foreground">
+                        What the Laravel community is building, sharing, and discussing around AI-powered development.
+                    </p>
+                </div>
+                <Link href="/feed/submit">
+                    <Button variant="outline" size="sm">
+                        Share Content
+                    </Button>
+                </Link>
             </div>
 
             <!-- Platform Filters -->

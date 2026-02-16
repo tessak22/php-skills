@@ -85,6 +85,7 @@ class SocialPostFactory extends Factory
             Platform::Bluesky => 'https://bsky.app/profile/'.fake()->userName().'.bsky.social/post/'.fake()->lexify('???????????'),
             Platform::YouTube => 'https://youtube.com/watch?v='.fake()->lexify('???????????'),
             Platform::DevTo => 'https://dev.to/'.fake()->userName().'/'.fake()->slug(6),
+            Platform::Community => 'https://'.fake()->domainName().'/'.fake()->slug(4),
         };
     }
 }

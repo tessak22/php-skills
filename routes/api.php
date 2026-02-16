@@ -28,6 +28,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/skills', [SkillController::class, 'store']);
         Route::put('/skills/{skill:slug}', [SkillController::class, 'update']);
         Route::delete('/skills/{skill:slug}', [SkillController::class, 'destroy']);
+        Route::post('/feed', [FeedController::class, 'store']);
+        Route::post('/skills/import-preview', [SkillController::class, 'importPreview']);
     });
 
     // Admin

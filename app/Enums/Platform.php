@@ -10,6 +10,7 @@ enum Platform: string
     case Bluesky = 'bluesky';
     case YouTube = 'youtube';
     case DevTo = 'devto';
+    case Community = 'community';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum Platform: string
             self::Bluesky => 'Bluesky',
             self::YouTube => 'YouTube',
             self::DevTo => 'DEV.to',
+            self::Community => 'Community',
         };
     }
 }

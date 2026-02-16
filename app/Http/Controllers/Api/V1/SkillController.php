@@ -14,7 +14,9 @@ use App\Models\Skill;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Symfony\Component\Yaml\Yaml;
 
 class SkillController extends Controller
 {
@@ -115,5 +117,60 @@ class SkillController extends Controller
         $skill->delete();
 
         return response()->json(['message' => 'Skill deleted successfully.'], 200);
+    }
+
+    public function importPreview(Request $request): JsonResponse
+    {
+        $request->validate([
+            'github_url' => ['required', 'url', 'regex:#^https://github\.com/.+#'],
+        ]);
+
+        $githubUrl = $request->input('github_url');
+
+        // Parse GitHub URL to extract owner, repo, branch, and file path
+        // Supports: https://github.com/owner/repo/blob/branch/path/to/SKILL.md
+        $pattern = '#^https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)$#';
+
+        if (! preg_match($pattern, $githubUrl, $matches)) {
+            return response()->json([
+                'message' => 'Invalid GitHub file URL. Expected format: https://github.com/owner/repo/blob/branch/path/to/SKILL.md',
+            ], 422);
+        }
+
+        [, $owner, $repo, $branch, $filePath] = $matches;
+
+        $rawUrl = "https://raw.githubusercontent.com/{$owner}/{$repo}/{$branch}/{$filePath}";
+
+        $response = Http::timeout(10)->get($rawUrl);
+
+        if ($response->failed()) {
+            return response()->json([
+                'message' => 'Could not fetch the file from GitHub. Please check the URL and ensure the repository is public.',
+            ], 422);
+        }
+
+        $rawContent = $response->body();
+
+        // Parse YAML frontmatter
+        $frontmatter = [];
+        $body = $rawContent;
+
+        if (preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $rawContent, $fmMatches)) {
+            try {
+                $frontmatter = Yaml::parse($fmMatches[1]) ?? [];
+            } catch (\Exception) {
+                $frontmatter = [];
+            }
+            $body = trim($fmMatches[2]);
+        }
+
+        return response()->json([
+            'name' => $frontmatter['name'] ?? $frontmatter['title'] ?? '',
+            'description' => $frontmatter['description'] ?? '',
+            'content' => $body,
+            'source_url' => $githubUrl,
+            'tags' => $frontmatter['tags'] ?? [],
+            'install_command' => $frontmatter['install_command'] ?? $frontmatter['install'] ?? '',
+        ]);
     }
 }

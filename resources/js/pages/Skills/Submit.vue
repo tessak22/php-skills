@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +42,46 @@ const form = useForm({
     source_url: '',
 });
 
+const page = usePage();
+
+// GitHub import state
+const githubUrl = ref('');
+const importing = ref(false);
+const importError = ref('');
+
+async function importFromGithub() {
+    if (!githubUrl.value) return;
+
+    if (!page.props.auth?.user) {
+        router.visit('/login');
+        return;
+    }
+
+    importing.value = true;
+    importError.value = '';
+
+    try {
+        const response = await axios.post('/api/v1/skills/import-preview', {
+            github_url: githubUrl.value,
+        });
+
+        const data = response.data;
+
+        if (data.name) form.name = data.name;
+        if (data.description) form.description = data.description;
+        if (data.content) form.content = data.content;
+        if (data.install_command) form.install_command = data.install_command;
+        if (data.source_url) form.source_url = data.source_url;
+        if (data.tags) {
+            form.tags = Array.isArray(data.tags) ? data.tags.join(', ') : data.tags;
+        }
+    } catch (error: any) {
+        importError.value = error.response?.data?.message || 'Failed to import from GitHub. Please check the URL and try again.';
+    } finally {
+        importing.value = false;
+    }
+}
+
 function toggleAgent(agent: string) {
     const index = form.compatible_agents.indexOf(agent);
     if (index === -1) {
@@ -48,8 +90,6 @@ function toggleAgent(agent: string) {
         form.compatible_agents.splice(index, 1);
     }
 }
-
-const page = usePage();
 
 function submit() {
     if (!page.props.auth?.user) {
@@ -86,6 +126,25 @@ function submit() {
                     Your submission will be reviewed before appearing in the directory.
                 </p>
             </div>
+
+            <!-- Import from GitHub -->
+            <Card class="mb-6">
+                <CardHeader>
+                    <CardTitle>Import from GitHub</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p class="mb-4 text-sm text-muted-foreground">
+                        Have a SKILL.md file on GitHub? Paste the URL and we'll auto-populate the form.
+                    </p>
+                    <div class="flex gap-2">
+                        <Input v-model="githubUrl" placeholder="https://github.com/user/repo/blob/main/skills/my-skill/SKILL.md" class="flex-1" />
+                        <Button @click="importFromGithub" :disabled="importing" variant="outline">
+                            {{ importing ? 'Importing...' : 'Import' }}
+                        </Button>
+                    </div>
+                    <p v-if="importError" class="mt-2 text-sm text-red-500">{{ importError }}</p>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
