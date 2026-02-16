@@ -63,6 +63,38 @@ When something unexpected happens — a package behaves differently than documen
 **Severity:** Minor
 **Product Insight:** Switching an existing User model from auto-increment to ULIDs is non-trivial when auth packages (Fortify) are involved. A "ULID-first" starter kit option would be a nice addition.
 
+### 2026-02-16 — Laravel Cloud First Deploy: Chain of Silent Failures
+
+**Context:** First-time deployment to Laravel Cloud with a Postgres database and Redis store declared in `cloud.yaml`. Multiple issues cascaded into hours of troubleshooting.
+
+**The full chain of problems:**
+
+1. **Build "canceled" with no error** — Turns out billing wasn't set up. No error message, just "canceled." (Logged separately below.)
+
+2. **Data disappeared after each deploy** — Ran `skills:import` successfully, but data vanished on next deploy. Root cause: `DB_CONNECTION` defaulted to `sqlite` (from `.env.example`). The import wrote to an ephemeral sqlite file on the container, which gets destroyed on redeploy. Fix: Set `DB_CONNECTION=pgsql` in Cloud env vars.
+
+3. **`config:cache` in build step cached wrong env** — Build step doesn't have access to runtime env vars (DATABASE_URL, REDIS_URL). Caching config during build locked in defaults (sqlite, etc.). Fix: Move `config:cache` to deploy commands in the dashboard.
+
+4. **Deploy commands vs build commands confusion** — `cloud.yaml` doesn't support a `deploy:` key. Deploy commands must be set in the Cloud dashboard UI. The only documentation of this distinction is buried. We initially put `migrate --force` in `cloud.yaml` under `deploy:`, which was silently ignored.
+
+5. **`db:seed` "command canceled" in Cloud terminal** — Production artisan commands require `--force` flag. The Cloud terminal can't handle interactive confirmation prompts, so commands just fail with "canceled." No hint about adding `--force`.
+
+6. **`fake()` not available in production** — `fakerphp/faker` is a dev dependency. Running a factory-based seeder on Cloud fails with `Call to undefined function fake()`. Obvious in hindsight, but easy to miss when you develop locally where dev deps are installed.
+
+7. **500 error: Redis connection refused** — Declared Redis in `cloud.yaml` (`stores: redis: type: redis`), set `CACHE_STORE=redis` in env vars, but Redis wasn't actually connected/provisioned. The app 500'd on every page because `Cache::remember()` is called in the HomeController. The error was only visible in the Logs tab — the site just showed a generic 500. Fix: Set `CACHE_STORE=database` and `SESSION_DRIVER=database` until Redis is properly linked.
+
+**Resolution:** All issues resolved by: using `database` drivers for cache/session/queue, setting `DB_CONNECTION=pgsql`, moving artisan commands to dashboard deploy commands, and using hardcoded seed data instead of factories.
+
+**Severity:** Blocker (collectively — each issue individually was Notable, but the cascade was brutal)
+
+**Product Insights:**
+- **Cloud needs a "first deploy" checklist or wizard.** The gap between "connect repo" and "working app" has too many silent failure modes. A guided setup that validates: billing → env vars → database connection → Redis connection → build → deploy would save hours.
+- **`cloud.yaml` should validate unknown keys.** Putting `deploy:` in the YAML was silently ignored. A warning like "unknown key 'deploy' — deploy commands are configured in the dashboard" would have saved 30 minutes.
+- **The Cloud terminal should hint about `--force`.** When a command is "canceled" due to a confirmation prompt, the error should say "Add --force to run in non-interactive mode."
+- **Resource health should be visible at a glance.** If `cloud.yaml` declares Redis but Redis isn't connected, the dashboard should show a warning, not let you discover it via a 500 error.
+- **Default `.env.example` should match Cloud defaults.** The starter kit defaults to `sqlite`/`database` drivers. Cloud injects Postgres and Redis. The mismatch is a trap for every new Cloud user. Either Cloud should auto-set these env vars, or the docs should have a "Required env vars" section.
+- **Build vs deploy documentation needs a dedicated page.** "What runs in build (no services) vs deploy (full services) vs runtime" is the single most important Cloud concept and it's not prominently documented.
+
 ### 2026-02-16 — Laravel Cloud Build Shows "Canceled" With No Error When No Billing
 
 **Context:** Connected GitHub repo to Laravel Cloud and triggered a build. Build immediately shows status "canceled" with no error log output.
