@@ -12,8 +12,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <span class="font-semibold">Laravel Skills</span>
                 </Link>
                 <nav class="flex gap-6 text-sm text-muted-foreground">
-                    <Link href="/skills" class="hover:text-foreground transition-colors">Skills</Link>
-                    <Link href="/feed" class="hover:text-foreground transition-colors">Feed</Link>
+                    <Link href="/submit" class="hover:text-foreground transition-colors">Submit a Skill</Link>
                     <Link href="/docs" class="hover:text-foreground transition-colors">Docs</Link>
                 </nav>
                 <p class="text-sm text-muted-foreground">

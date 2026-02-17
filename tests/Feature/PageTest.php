@@ -11,8 +11,14 @@ it('renders the home page', function () {
     $response->assertOk();
 });
 
-it('renders the skills directory page', function () {
-    $response = $this->get('/skills');
+it('renders the home page with search filter', function () {
+    $response = $this->get('/?search=eloquent');
+
+    $response->assertOk();
+});
+
+it('renders the home page with sort filter', function () {
+    $response = $this->get('/?sort=newest');
 
     $response->assertOk();
 });
@@ -24,12 +30,6 @@ it('renders a skill detail page for a valid skill', function () {
     ]);
 
     $response = $this->get("/skills/{$skill->slug}");
-
-    $response->assertOk();
-});
-
-it('renders the feed page', function () {
-    $response = $this->get('/feed');
 
     $response->assertOk();
 });

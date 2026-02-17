@@ -51,7 +51,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Home', href: '/' },
-    { title: 'Skills', href: '/skills' },
+    { title: 'Skills', href: '/' },
     { title: props.skill.name },
 ];
 
@@ -205,7 +205,7 @@ const renderedContent = computed(() => {
                             </CardHeader>
                             <CardContent>
                                 <Link
-                                    :href="`/skills?category=${skill.category.slug}`"
+                                    :href="`/?category=${skill.category.slug}`"
                                     class="inline-block"
                                 >
                                     <Badge variant="outline" class="cursor-pointer text-sm hover:bg-accent">

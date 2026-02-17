@@ -16,29 +16,52 @@ class HomeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $featuredSkills = Cache::remember('home:featured_skills', now()->addMinutes(15), function () {
-            return Skill::featured()
-                ->with(['author', 'category'])
-                ->latest()
-                ->limit(6)
-                ->get();
-        });
+        $perPage = (int) $request->input('per_page', 12);
+        $sort = $request->input('sort', 'installs');
+        $search = $request->input('search');
+        $categorySlug = $request->input('category');
+        $agent = $request->input('agent');
 
-        $recentPosts = Cache::remember('home:recent_posts', now()->addMinutes(5), function () {
-            return SocialPost::visible()
-                ->ordered()
-                ->limit(8)
-                ->get();
-        });
+        $query = Skill::query()->with(['author', 'category']);
+
+        if ($search) {
+            $query = Skill::search($search)->query(fn ($q) => $q->with(['author', 'category']));
+        }
+
+        if ($categorySlug) {
+            $category = Category::where('slug', $categorySlug)->first();
+            if ($category) {
+                $query->where('category_id', $category->id);
+            }
+        }
+
+        if ($agent) {
+            $query->whereJsonContains('compatible_agents', $agent);
+        }
+
+        if (! $search) {
+            $query->ordered($sort);
+        }
+
+        $skills = $query->paginate($perPage)->withQueryString();
 
         $categories = Cache::remember('categories:all', now()->addHours(24), function () {
             return Category::ordered()->get();
         });
 
         return Inertia::render('Home', [
-            'featuredSkills' => $featuredSkills,
-            'recentPosts' => $recentPosts,
+            'skills' => $skills,
             'categories' => $categories,
+            'filters' => [
+                'search' => $search,
+                'category' => $categorySlug,
+                'agent' => $agent,
+                'sort' => $sort,
+            ],
+            'recentPosts' => Inertia::defer(fn () => SocialPost::visible()
+                ->ordered()
+                ->limit(8)
+                ->get()),
         ]);
     }
 }

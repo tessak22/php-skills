@@ -107,7 +107,7 @@ const agents: Agent[] = [
                             <li>
                                 <strong class="text-foreground">Browse the directory</strong> --
                                 Find a skill that matches your needs at
-                                <Link href="/skills" class="text-primary hover:underline">/skills</Link>.
+                                <Link href="/" class="text-primary hover:underline">the homepage</Link>.
                             </li>
                             <li>
                                 <strong class="text-foreground">Copy the install command</strong> --
