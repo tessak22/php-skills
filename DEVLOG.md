@@ -113,6 +113,31 @@ When something unexpected happens — a package behaves differently than documen
 **Severity:** Notable
 **Product Insight:** The Laravel Cloud docs could benefit from a "common mistakes" section highlighting that database-dependent commands (migrate, db:seed) should not be in the build step. Many developers coming from Forge/Vapor may not realize the distinction.
 
+### 2026-02-17 — Homepage Consolidation: Absorbing Skills Directory + Community Feed
+
+**Context:** Team feedback directed us to consolidate the separate `/skills` and `/feed` pages onto the homepage. Also: remove login/register UI, make "Submit a Skill" the CTA, add install command to hero, fix inaccurate "curated" copy, and match laravel.com design more closely.
+
+**Changes made:**
+- HomeController now absorbs all search/filter/pagination logic from SkillDirectoryController (search, category, agent, sort, per_page)
+- Community feed loaded via `Inertia::defer()` so it doesn't block initial page render
+- Removed `/skills` index, `/feed`, and `/dashboard` routes
+- AppHeader stripped to logo + "Submit a Skill" CTA (removed nav, login/register, user dropdown, mobile menu)
+- Home.vue rewritten: hero with install command + skills directory with search/sort + deferred community feed with platform filter tabs
+- Deleted `Skills/Index.vue`, `Feed/Index.vue`, `Dashboard.vue`, `Welcome.vue`
+- Updated all auth test redirects from `route('dashboard')` to `route('home')`
+
+**Gotchas encountered:**
+1. **Wayfinder route generation cascade** — Removing the `/dashboard` route caused Wayfinder to regenerate TypeScript without the `dashboard` export. `Welcome.vue` and `AppSidebar.vue` both imported it, causing build failures. Had to delete Welcome.vue and update AppSidebar.vue.
+2. **Fortify home config** — `config/fortify.php` had `'home' => '/dashboard'`. All post-auth redirects (login, register, email verification) went to the now-deleted route. Had to update to `'home' => '/'` and fix 6 auth tests.
+3. **Hero design feedback loop** — Initially stripped the hero to plain white per "match laravel.com" direction. Team wanted the gradient/sparkles/color preserved. Lesson: "match laravel.com" meant clean + professional, not necessarily zero color.
+
+**Severity:** Notable
+
+**Product Insights:**
+- **Wayfinder is powerful but creates tight coupling.** When routes are removed, the generated TypeScript immediately breaks any frontend file importing them. This is actually a feature (catches dead references), but the error messages point to the generated file, not the consuming component. A "these components import a deleted route" hint would speed up debugging.
+- **Fortify's `home` config is easy to forget.** When changing the post-auth landing page, you need to update `config/fortify.php`, not just routes. This isn't obvious and caused 6 test failures. Could be worth documenting more prominently.
+- **Inertia v2 `Deferred` works great for below-the-fold content.** The community feed loads after the skills grid, keeping initial page load fast. The `#fallback` slot with skeleton components provides a clean loading experience with zero extra JavaScript.
+
 ### 2026-02-16 — Pint Fixes in Starter Kit Test Files
 
 **Context:** Ran `./vendor/bin/pint --parallel` immediately after scaffold.

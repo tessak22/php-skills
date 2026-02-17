@@ -132,11 +132,6 @@ function onSearch(value: string) {
     applyFilters();
 }
 
-function onCategorySelect(slug: string | undefined) {
-    selectedCategory.value = slug;
-    applyFilters();
-}
-
 function setSort(sort: string) {
     currentSort.value = sort;
     applyFilters();
