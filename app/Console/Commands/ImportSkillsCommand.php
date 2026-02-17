@@ -86,11 +86,10 @@ class ImportSkillsCommand extends Command
             $frontmatter = $this->parseFrontmatter($fetched['content']);
             $skillContent = $this->stripFrontmatter($fetched['content']);
 
-            $name = $frontmatter['name']
-                ?? $this->humanizeName($skillId);
+            $name = $frontmatter['name'] ?? $skillId;
 
             $description = $frontmatter['description']
-                ?? "A reusable AI agent skill for {$this->humanizeName($skillId)}.";
+                ?? "A reusable AI agent skill for {$skillId}.";
 
             if ($isDryRun) {
                 $this->newLine();
@@ -291,17 +290,6 @@ class ImportSkillsCommand extends Command
         $parts = explode('/', $source, 2);
 
         return $parts[0] ?? 'unknown';
-    }
-
-    /**
-     * Turn a kebab-case skill ID into a human-readable name.
-     */
-    private function humanizeName(string $skillId): string
-    {
-        return Str::of($skillId)
-            ->replace('-', ' ')
-            ->title()
-            ->toString();
     }
 
     /**
